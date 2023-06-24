@@ -1,0 +1,9 @@
+node_modules
+npm-debug.log
+yarn-error.log
+client/components
+/src/config/config.env
+/src/controller/test.js
+.idea
+.DS_Store
+config.env
