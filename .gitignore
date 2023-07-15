@@ -7,3 +7,4 @@ client/components
 .idea
 .DS_Store
 config.env
+.env
