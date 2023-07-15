@@ -4,6 +4,7 @@ const cors = require("cors");
 const app = express();
 const cookie = require("cookie-parser");
 const passport = require("passport");
+const authRoutes = require("./src/routes/authRoutes");
 
 dotenv.config();
 app.use(express.json());
@@ -27,5 +28,7 @@ const allowCrossDomain = function (req, res, next) {
 app.use(allowCrossDomain);
 app.use(cookie());
 app.use(passport.initialize());
+
+app.use("/api/v1/auth", authRoutes);
 
 module.exports = app;
