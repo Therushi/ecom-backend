@@ -52,6 +52,7 @@ exports.createProject = asyncHandler(async (req, res) => {
   const project = await Project.create({
     name,
     priority,
+    companyId,
     managerId,
     employee,
     startDate,

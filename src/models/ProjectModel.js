@@ -12,6 +12,11 @@ const ProjectSchema = mongoose.Schema(
       type: String,
       require: true,
     },
+    companyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Company",
+      reuired: true,
+    },
     managerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

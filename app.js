@@ -6,6 +6,7 @@ const cookie = require("cookie-parser");
 const passport = require("passport");
 const authRoutes = require("./src/routes/authRoutes");
 const projectRoutes = require("./src/routes/projectRoutes");
+const taskRoutes = require("./src/routes/taskRoutes");
 
 dotenv.config();
 app.use(express.json());
@@ -32,5 +33,6 @@ app.use(passport.initialize());
 
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/", projectRoutes);
+app.use("/api/v1/", taskRoutes);
 
 module.exports = app;
