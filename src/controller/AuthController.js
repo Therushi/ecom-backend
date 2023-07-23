@@ -80,7 +80,7 @@ exports.login = asyncHandler(async (req, res) => {
 
   if (existingUser && (await bcrypt.compare(password, existingUser.password))) {
     const token = jwt.sign(
-      { id: existingUser.id, email },
+      { id: existingUser.id, email, role: path },
       process.env.JWT_SECRET_KEY,
       { algorithm: "HS256", expiresIn: "2h" }
     );
@@ -116,7 +116,7 @@ exports.adminRegister = asyncHandler(async (req, res) => {
   const encryptedPassword = await bcrypt.hash(password, saltRounds);
   const user = await Admin.create({ name, email, password: encryptedPassword });
   if (user) {
-    return res.send(201).json({
+    return res.status(201).json({
       status: true,
       message: "User created sucessfully",
       data: user,
