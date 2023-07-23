@@ -17,9 +17,9 @@ const CompanySchema = mongoose.Schema(
     contact: {
       type: Number,
     },
-    isVerified: {
-      type: Boolean,
-      default: false,
+    managers: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "Managers",
     },
   },
   modelOptions

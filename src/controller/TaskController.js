@@ -2,13 +2,13 @@ const Task = require("../models/TaskModel");
 const asyncHandler = require("../utils/asyncHandler");
 
 exports.createTask = asyncHandler(async (req, res) => {
-  const { name, description, assignedTo, projectId, completed } = req.body;
+  const { projectId, employeeId, title, description, completed } = req.body;
 
   const newTask = Task.create({
-    name,
-    description,
-    assignedTo,
     projectId,
+    employeeId,
+    title,
+    description,
     completed,
   });
 

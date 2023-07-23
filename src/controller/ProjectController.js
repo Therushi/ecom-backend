@@ -1,65 +1,33 @@
 const Project = require("../models/ProjectModel");
-const User = require("../models/UserModel");
 const asyncHandler = require("../utils/asyncHandler");
 
 exports.createProject = asyncHandler(async (req, res) => {
-  const { name, priority, managerId, employee, startDate, endDate } = req.body;
+  const { name, priority, managerId, adminId, employee, startDate, endDate } =
+    req.body;
 
   const existingProject = await Project.findOne({ name });
 
-  if (existingProject)
-    return res.status(409).json({ message: "Project is already exists" });
-
-  const managerExists = await User.findOne({
-    _id: managerId,
-    roles: {
-      $elemMatch: {
-        $eq: "admin",
-      },
-    },
-  });
-  if (managerExists === null) {
-    return res.status(404).json({
-      message: "Manager not found",
-    });
-  }
-  const employeeIds = employee.map((id) => id.employeeId);
-
-  const employeeExists = await User.find({
-    _id: { $in: employeeIds },
-    roles: {
-      $elemMatch: {
-        $eq: "user",
-      },
-    },
-  });
-
-  const foundEmployeeIds = employeeExists.map((employee) =>
-    employee._id.toString()
-  );
-
-  const missingEmployeeIds = employeeIds.filter(
-    (employeeId) => !foundEmployeeIds.includes(employeeId)
-  );
-
-  if (missingEmployeeIds.length > 0 || employeeExists == null) {
-    return res.status(404).json({
-      message: "Check employee data",
-      missingEmployeeIds: missingEmployeeIds,
+  if (existingProject) {
+    return res.status(409).json({
+      status: false,
+      message: "Project with same name is already exists",
     });
   }
 
+  const projectAssignee = managerId ? managerId : adminId;
   const project = await Project.create({
     name,
     priority,
     companyId,
-    managerId,
+    projectAssignee,
     employee,
     startDate,
     endDate,
   });
+
   if (project) {
     res.status(201).json({
+      status: true,
       message: "Project created sucessfully",
       data: project,
     });
@@ -67,7 +35,7 @@ exports.createProject = asyncHandler(async (req, res) => {
 });
 
 exports.updateProject = asyncHandler(async (req, res) => {
-  const { id } = req.body;
+  const { id } = req.params.id;
   const filter = { _id: id };
   const updates = {};
   for (const field in req.body) {
@@ -81,10 +49,12 @@ exports.updateProject = asyncHandler(async (req, res) => {
 
   if (!updatedProject) {
     return res.status(404).json({
+      status: false,
       message: "Project not found",
     });
   }
   res.status(200).json({
+    status: true,
     message: "Project updated successfully",
     data: updatedProject,
   });
@@ -93,13 +63,14 @@ exports.updateProject = asyncHandler(async (req, res) => {
 exports.getAllProject = asyncHandler(async (req, res) => {
   const projects = await Project.find({});
   return res.status(200).json({
+    status: true,
     message: "Fetched all Projects",
     data: projects,
   });
 });
 
-exports.getProjectById = asyncHandler(async (req, res) => {
-  const id = req.params.id;
+exports.getProjectByManagerId = asyncHandler(async (req, res) => {
+  const id = req.params.managerId;
 
   const projects = await Project.find({ managerId: id });
 

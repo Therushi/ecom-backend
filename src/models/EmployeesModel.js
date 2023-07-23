@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const schemaOptions = require("../utils/timeStamp");
 
 // Common validation function for managerId and adminId
 function atLeastOneFieldRequired() {
@@ -9,15 +8,11 @@ function atLeastOneFieldRequired() {
   return true;
 }
 
-const ProjectSchema = mongoose.Schema(
+const EmployeesSchema = mongoose.Schema(
   {
-    name: {
-      type: String,
-      require: true,
-      unique: true,
-    },
-    priority: {
-      type: String,
+    companyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Company",
       require: true,
     },
     managerId: {
@@ -30,24 +25,22 @@ const ProjectSchema = mongoose.Schema(
       ref: "Admin",
       validate: atLeastOneFieldRequired,
     },
-    employee: {
-      type: [mongoose.Schema.Types.ObjectId],
-      ref: "Emplyees",
+    name: {
+      type: String,
+      require: true,
     },
-    startDate: {
-      type: Date,
+    email: {
+      type: String,
+      require: true,
+      unique: true,
     },
-    endDate: {
-      type: Date,
-    },
-    deleted: {
-      type: Boolean,
-      default: false,
+    password: {
+      type: String,
+      select: false,
     },
   },
-  schemaOptions
+  { timeStamps: true }
 );
 
-const Project = mongoose.model("Project", ProjectSchema);
-
-module.exports = Project;
+const Employees = mongoose.model("Employees", EmployeesSchema);
+module.exports = Employees;

@@ -32,7 +32,7 @@ app.use(cookie());
 app.use(passport.initialize());
 
 app.use("/api/v1/auth", authRoutes);
-app.use("/api/v1/", projectRoutes);
+// app.use("/api/v1/", projectRoutes);
 app.use("/api/v1/", taskRoutes);
 
 module.exports = app;
