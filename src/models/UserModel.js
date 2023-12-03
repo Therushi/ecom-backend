@@ -12,7 +12,7 @@ const UserSchema = mongoose.Schema(
       type: String,
       required: true,
     },
-    password: { required: true, type: String, select: false },
+    password: { type: String, select: false },
     roleId: { type: [mongoose.Schema.Types.ObjectId], ref: "Roles" },
     companyId: { type: mongoose.Schema.Types.ObjectId, ref: "Companies" },
     isVerified: { type: Boolean, default: false },

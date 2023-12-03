@@ -1,4 +1,5 @@
 const User = require("../models/UserModel");
+const Company = require("../models/Companymodel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const saltRounds = 10;
@@ -26,13 +27,23 @@ exports.verifyEmail = asyncHandler(async (req, res) => {
     data: null,
   });
 });
-
+// TODO: verify unique company name
 // TODO: OTP VERIFICATION API
 
 exports.register = asyncHandler(async (req, res) => {
-  const { name, email, password, roleType, subscriptionType } = req.body;
+  const {
+    name,
+    email,
+    password,
+    roleType,
+    subscriptionType,
+    companyName,
+    website,
+  } = req.body;
 
-  if (!(name && email && password && roleType && subscriptionType)) {
+  if (
+    !(name && email && password && roleType && subscriptionType && companyName)
+  ) {
     return res.status(400).json({
       status: false,
       message: "All fields are mandatory",
@@ -64,6 +75,19 @@ exports.register = asyncHandler(async (req, res) => {
   });
 
   if (!user) throw new Error("while creating user something went wrong");
+
+  const newCompany = await Company.create({
+    name: companyName,
+    website,
+    userId: user._id,
+  });
+
+  if (!newCompany) {
+    throw new Error("while creating company something went wrong");
+  }
+
+  user.companyId = newCompany._id;
+  await user.save();
 
   return res.status(200).json({
     status: true,
