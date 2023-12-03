@@ -1,31 +1,43 @@
 const mongoose = require("mongoose");
+const modelOptions = require("../utils/timeStamp");
 
 const taskSchema = new mongoose.Schema(
   {
-    projectId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Project",
-      required: true,
-    },
-    employeeId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Employees",
-      required: true,
-    },
     title: {
       type: String,
       required: true,
     },
     description: {
       type: String,
-      required: true,
     },
-    completed: {
+    startDate: {
+      type: Date,
+    },
+    endDate: {
+      type: Date,
+    },
+    priority: {
+      type: String,
+    },
+    link: {
+      type: String,
+    },
+    isCompleted: {
       type: Boolean,
       default: false,
     },
+    projectId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Project",
+      required: true,
+    },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
   },
-  { timestamps: true }
+  modelOptions
 );
 
 const Task = mongoose.model("Task", taskSchema);

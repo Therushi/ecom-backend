@@ -5,21 +5,18 @@ const CompanySchema = mongoose.Schema(
   {
     name: {
       type: String,
-      require: true,
-    },
-    email: {
-      type: String,
-      require: true,
+      required: true,
     },
     website: {
       type: String,
     },
-    contact: {
-      type: Number,
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Users",
     },
-    managers: {
-      type: [mongoose.Schema.Types.ObjectId],
-      ref: "Managers",
+    isActive: {
+      type: Boolean,
+      default: true,
     },
   },
   modelOptions

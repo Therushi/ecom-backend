@@ -1,147 +1,103 @@
-const Managers = require("../models/ManagersModel");
-const Employees = require("../models/EmployeesModel");
-const Admin = require("../models/AdminModel");
+const User = require("../models/UserModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const saltRounds = 10;
 const asyncHandler = require("../utils/asyncHandler");
 const { userCollections } = require("../utils/constants");
+const Roles = require("../models/RolesModel");
+const Subscription = require("../models/SubscriptionModel");
 
-exports.register = asyncHandler(async (req, res) => {
-  let Role = Managers;
-  const { name, email, password, companyId, managerId, adminId } = req.body;
-  if (managerId || adminId) {
-    Role = Employees;
-  }
-  const existingUser = await Role.findOne({
-    email,
-    name,
-  });
+exports.verifyEmail = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  if (!email) throw new Error("Email is mandatory");
 
-  if (existingUser)
-    return res
-      .status(400)
-      .json({ status: false, message: "User already exists" });
+  const existingUser = await User.findOne({ email });
 
-  const encryptedPassword = await bcrypt.hash(password, saltRounds);
-  let User;
-  switch (Role) {
-    case Managers:
-      User = await Managers.create({
-        companyId,
-        name,
-        email,
-        password: encryptedPassword,
-      });
-      break;
-    case Employees:
-      const assigneeId = managerId ? managerId : adminId;
-      User = await Employees.create({
-        companyId,
-        assigneeId,
-        name,
-        email,
-        password: encryptedPassword,
-      });
-      break;
-  }
-
-  if (User)
-    return res.status(201).json({
-      status: true,
-      message: "User created sucessfully",
-      data: User,
-    });
-});
-
-exports.login = asyncHandler(async (req, res) => {
-  const path = req.params;
-  const { email, password } = req.body;
-  let userRole;
-  switch (path) {
-    case "manager":
-      userRole = Managers;
-      break;
-    case "employee":
-      userRole = Employees;
-      break;
-    case "admin":
-      userRole = Admin;
-      break;
-  }
-  const existingUser = await userRole.findOne({
-    email,
-  });
-
-  if (!existingUser)
-    return res
-      .status(403)
-      .json({ status: false, message: "Please register to login" });
-
-  if (existingUser && (await bcrypt.compare(password, existingUser.password))) {
-    const token = jwt.sign(
-      { id: existingUser.id, email, role: path },
-      process.env.JWT_SECRET_KEY,
-      { algorithm: "HS256", expiresIn: "2h" }
-    );
-    existingUser.password = undefined;
-
-    return res.status(200).json({
-      message: "login sucessfull",
-      data: {
-        token: token,
-        userInfo: existingUser,
-      },
-    });
-  } else {
+  if (existingUser) {
     return res.status(401).json({
       status: false,
-      message: "Please check your credentials",
+      message: "Email already taken",
+      data: null,
     });
   }
+  return res.status(200).json({
+    status: true,
+    message: "Email is valid",
+    data: null,
+  });
 });
 
-exports.adminRegister = asyncHandler(async (req, res) => {
-  const { name, email, password } = req.body;
+// TODO: OTP VERIFICATION API
 
-  const checkExistingAdmin = await Admin.findOne({ email, name });
+exports.register = asyncHandler(async (req, res) => {
+  const { name, email, password, roleType, subscriptionType } = req.body;
 
-  if (checkExistingAdmin) {
-    return res.status(409).json({
+  if (!(name && email && password && roleType && subscriptionType)) {
+    return res.status(400).json({
       status: false,
-      message: "User already present please login",
+      message: "All fields are mandatory",
+      data: null,
     });
   }
 
+  const subscription = await Subscription.findOne(
+    { name: subscriptionType.toLowerCase() },
+    { _id: 1, validity: 1 }
+  );
+  const endDate = new Date();
+  endDate.setDate(endDate.getDate() + subscription.validity);
+  const subscriptionEndDate = endDate.toISOString();
+  const roles = await Roles.find({}, { _id: 1 });
+  const rolesIds = roles.map((id) => id._id);
+
+  // Encrypt password and Store
   const encryptedPassword = await bcrypt.hash(password, saltRounds);
-  const user = await Admin.create({ name, email, password: encryptedPassword });
-  if (user) {
-    return res.status(201).json({
-      status: true,
-      message: "User created sucessfully",
-      data: user,
-    });
-  }
+
+  const user = await User.create({
+    name,
+    email,
+    password: encryptedPassword,
+    isRegistered: true,
+    subscriptionId: subscription._id,
+    roleId: rolesIds,
+    subscriptionEndDate,
+  });
+
+  if (!user) throw new Error("while creating user something went wrong");
+
+  return res.status(200).json({
+    status: true,
+    message: "user registered sucessfully",
+    data: user,
+  });
 });
 
-exports.deleteUsers = asyncHandler(async (req, res) => {
-  const { userId, userType } = req.params;
-  const filter = { _id: userId };
+exports.roleAdd = asyncHandler(async (req, res) => {
+  const { name, description } = req.body;
 
-  if (!userCollections.hasOwnProperty(userType)) {
-    return res.status(400).json({ error: "Invalid user type." });
-  }
-  const collection = db.collection(userCollections[userType]);
-  const deletedUser = await collection.findOneAndDelete(filter);
+  const role = await Roles.create({ name, description });
 
-  if (!deletedUser) {
-    return res.status(404).json({
-      message: "User not found",
-    });
-  }
+  return res.status(200).json({
+    status: 200,
+    data: role,
+  });
+});
 
-  res.status(200).json({
-    message: "User deleted successfully",
-    data: deletedUser,
+exports.addSubscription = asyncHandler(async (req, res) => {
+  const { name, description, price, validity, userLimit, projectLimit } =
+    req.body;
+
+  const subscription = await Subscription.create({
+    name,
+    description,
+    price,
+    validity,
+    userLimit,
+    projectLimit,
+  });
+
+  return res.status(200).json({
+    status: 200,
+    data: subscription,
   });
 });

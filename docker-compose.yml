@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 services:
   ecom-backend:
     build:
@@ -7,10 +7,10 @@ services:
     container_name: ecom-backend
     command: npm start --reload
     ports:
-      - '3500:3500'
+      - "3000:3000"
     volumes:
-      - './:/app:delegated'
-      - '/app/node_modules'
+      - "./:/app:delegated"
+      - "/app/node_modules"
     restart: unless-stopped
     env_file:
       - .env

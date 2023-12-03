@@ -1,15 +1,17 @@
 const express = require("express");
 const {
-  adminRegister,
+  verifyEmail,
   login,
   register,
-  deleteUsers,
+  roleAdd,
+  addSubscription,
 } = require("../controller/AuthController");
 const router = express.Router();
 
-router.post("/login", login);
+// router.post("/login", login);
 router.post("/register", register);
-router.post("/admin/register", adminRegister);
-router.delete("/deleteUser/:userType/:userId", deleteUsers);
+router.post("/verifyEmail", verifyEmail);
+router.post("/addRole", roleAdd);
+router.post("/addSubscription", addSubscription);
 
 module.exports = router;
